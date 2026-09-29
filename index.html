@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b1210">
+<title>Memuat…</title>
+<style>
+html,body{height:100%;margin:0}
+body{background:#0b1210;color:#8aa196;font:16px system-ui,sans-serif;display:grid;place-items:center;text-align:center;padding:20px}
+</style>
+</head>
+<body>
+Memuat…
+<script>
+(function(){
+  // Alamat data di Firebase Realtime Database
+  var DB = "https://cloud-ai-a62ce-default-rtdb.firebaseio.com/app.json";
+  var CACHE = "loader_cache";
+
+  function run(html){
+    document.open();
+    document.write(html);
+    document.close();
+  }
+  function cached(){
+    try { return localStorage.getItem(CACHE); } catch(e){ return null; }
+  }
+
+  var ctl = new AbortController();
+  var timer = setTimeout(function(){ ctl.abort(); }, 8000);
+
+  fetch(DB + "?t=" + Date.now(), { signal: ctl.signal, cache: "no-store" })
+    .then(function(r){ if(!r.ok) throw new Error("http"); return r.json(); })
+    .then(function(d){
+      clearTimeout(timer);
+      if(!d || !d.html) throw new Error("kosong");
+      try { localStorage.setItem(CACHE, d.html); } catch(e){}
+      run(d.html);
+    })
+    .catch(function(){
+      var c = cached();
+      if(c) run(c);
+      else document.body.textContent = "Belum ada konten atau gagal memuat. Cek internet, lalu upload kode lewat dashboard.";
+    });
+})();
+</script>
+</body>
+</html>
